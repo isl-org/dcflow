@@ -1,6 +1,6 @@
 # Code for the paper "Accurate Optical Flow via Direct Cost Volume Processing. Jia Xu, René Ranftl, and Vladlen Koltun. CVPR 2017"
 
-If you use this code or the provided environments in your research, please cite the following paper:
+If you use this code or the provided models in your research, please cite the following paper:
 
 	@inproceedings{XRK2017,
 		author    = {Jia Xu and Ren\'e Ranftl and Vladlen Koltun},
@@ -33,4 +33,4 @@ See ``matlab/demo.m``
 ## Log
 - Version 0.1, 2017-07-20
 
- 	Includes feature embedding code/models, 4-D cost volume construction and processing, and forward-backward consistency checking. Part of poster-processing (EpicFlow inpainting, homography fitting) is not included in this version due to license issues. We expect to include them in future versions. You may download the EpicFlow code (or other inpainting code), and replace the match file with our output to obtain a dense optical flow filed.
+ 	Includes feature embedding code/models, 4-D cost volume construction and processing, and forward-backward consistency checking. Part of poster-processing (EpicFlow inpainting, homography fitting) can not be included due to license issues. We expect to release them in future versions. You may download the EpicFlow code (or other inpainting code), and replace the match file with our output to obtain a dense optical flow filed.
