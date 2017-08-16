@@ -40,7 +40,6 @@ void sgmflow(const float *feat1, const float *feat2,
     return;
   }
 
-
   cl::Device default_device = all_dev[0];
 
   cl::Context context(default_device);
@@ -61,16 +60,18 @@ void sgmflow(const float *feat1, const float *feat2,
 
   // Pitched memory doesn't help
   // Input data
-  cl::Buffer unary1_d(context, CL_MEM_READ_WRITE, L*M*N*sizeof(uint8_t));
-  queue.enqueueFillBuffer(unary1_d, uint8_t(255*out_of_range), 0, L*M*N*sizeof(uint8_t));
+  cl_int err;
+
+  cl::Buffer unary1_d(context, CL_MEM_READ_WRITE, L*M*N*sizeof(uint8_t), NULL, &err);
+  CL_CHECK_ERR_R(queue.enqueueFillBuffer(unary1_d, uint8_t(255*out_of_range), 0, L*M*N*sizeof(uint8_t)));
 
   cl::Buffer unary2_d(context, CL_MEM_READ_WRITE, L*M*N*sizeof(uint8_t));
-  queue.enqueueFillBuffer(unary2_d, uint8_t(255*out_of_range), 0, L*M*N*sizeof(uint8_t));
+  CL_CHECK_ERR_R(queue.enqueueFillBuffer(unary2_d, uint8_t(255*out_of_range), 0, L*M*N*sizeof(uint8_t)));
 
   cl::Buffer feat1_d(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, FEAT_DIM*M*N*sizeof(float), (void*)feat1);
   cl::Buffer feat2_d(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, FEAT_DIM*M*N*sizeof(float), (void*)feat2);
 
-  queue.finish();
+  CL_CHECK_ERR_R(queue.finish());
 
   // Match
   #ifdef PROFILE
@@ -83,9 +84,9 @@ void sgmflow(const float *feat1, const float *feat2,
   match_kernel.setArg(2, M); match_kernel.setArg(3, N);
   match_kernel.setArg(4, max_offset);
   match_kernel.setArg(5, unary1_d); match_kernel.setArg(6, unary2_d);
-  queue.enqueueNDRangeKernel(match_kernel, cl::NDRange(3, 3),
+  CL_CHECK_ERR_R(queue.enqueueNDRangeKernel(match_kernel, cl::NDRange(3, 3),
     cl::NDRange(M-6, N-6),
-    cl::NullRange, NULL, &match_evt[0]);
+    cl::NullRange, NULL, &match_evt[0]));
   // queue.enqueueNDRangeKernel(match_kernel, cl::NullRange,
   //   cl::NDRange(M,DIVUP(N,4)),
   //   cl::NDRange(M,4), NULL, &match_evt[0]);
@@ -94,16 +95,16 @@ void sgmflow(const float *feat1, const float *feat2,
   cl::Kernel fix_kernel(program, "fix_border");
   fix_kernel.setArg(0, unary1_d); fix_kernel.setArg(1, unary2_d);
   fix_kernel.setArg(2, M); fix_kernel.setArg(3, N); fix_kernel.setArg(4, L);
-  queue.enqueueNDRangeKernel(fix_kernel, cl::NullRange,
+  CL_CHECK_ERR_R(queue.enqueueNDRangeKernel(fix_kernel, cl::NullRange,
     cl::NDRange(M, N),
-    cl::NullRange, &match_evt, NULL);
+    cl::NullRange, &match_evt, NULL));
 
   // Set up buffers for SGM
   cl::Buffer im1_d(context, CL_MEM_READ_ONLY, M*N*sizeof(float));
-  queue.enqueueWriteBuffer(im1_d, CL_FALSE, 0, M*N*sizeof(float), im1);
+  CL_CHECK_ERR_R(queue.enqueueWriteBuffer(im1_d, CL_FALSE, 0, M*N*sizeof(float), im1));
 
   cl::Buffer im2_d(context, CL_MEM_READ_ONLY, M*N*sizeof(float));
-  queue.enqueueWriteBuffer(im2_d, CL_FALSE, 0, M*N*sizeof(float), im2);
+  CL_CHECK_ERR_R(queue.enqueueWriteBuffer(im2_d, CL_FALSE, 0, M*N*sizeof(float), im2));
 
   #ifdef PROFILE
   match_evt[0].wait();
@@ -123,15 +124,15 @@ void sgmflow(const float *feat1, const float *feat2,
 
   // Forward
   sgm.process(unary1_d, im1_d);
-  queue.enqueueReadBuffer(*sgm.recoverFlow(), CL_FALSE, 0,
-      M*N*sizeof(cl_short2), unary1);
+  CL_CHECK_ERR_R(queue.enqueueReadBuffer(*sgm.recoverFlow(), CL_FALSE, 0,
+      M*N*sizeof(cl_short2), unary1));
 
   // Backward
   sgm.process(unary2_d, im2_d);
-  queue.enqueueReadBuffer(*sgm.recoverFlow(), CL_FALSE, 0,
-      M*N*sizeof(cl_short2), unary2);
+  CL_CHECK_ERR_R(queue.enqueueReadBuffer(*sgm.recoverFlow(), CL_FALSE, 0,
+      M*N*sizeof(cl_short2), unary2));
 
-  queue.finish();
+  CL_CHECK_ERR_R(queue.finish());
 
 
   #ifdef PROFILE

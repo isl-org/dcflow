@@ -25,4 +25,5 @@ caffe.set_mode_gpu();
 net = caffe.Net(param.model_file, param.weight_file, 'test');
 
 matches = dcflow(im1, im2, param, net);
-% dlmwrite('matches.txt', matches, ' ');
+
+dlmwrite('matches.txt', matches, ' ');

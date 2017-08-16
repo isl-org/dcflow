@@ -34,14 +34,14 @@ SGM::SGM(int M, int N, int L, int max_offset, int P1, int P2,
 }
 
 void SGM::process(cl::Buffer &unary, cl::Buffer &im) {
-  queue_.enqueueFillBuffer(*out_, uint16_t(0), 0, L_*M_*N_*sizeof(uint16_t));
+  CL_CHECK_ERR_R(queue_.enqueueFillBuffer(*out_, uint16_t(0), 0, L_*M_*N_*sizeof(uint16_t)));
 
   sgm_horz_kernel_->setArg(0, unary);
   sgm_horz_kernel_->setArg(1, im);
 
   sgm_vert_kernel_->setArg(0, unary);
   sgm_vert_kernel_->setArg(1, im);
-  queue_.finish();
+  CL_CHECK_ERR_R(queue_.finish());
 
   // Process all 4 canonical directions
   for (int x = 0, y = 0; (x < N_) | (y < M_); ++x, ++y) {
@@ -81,10 +81,10 @@ void SGM::processHorz(int x, int reverse) {
   sgm_horz_kernel_->setArg(15, *scratch_h_[reverse]);
   sgm_horz_kernel_->setArg(16, cl::Local(M_*HORZ_DBS*sizeof(ushort)));
 
-  queue_.enqueueNDRangeKernel(*sgm_horz_kernel_,
+  CL_CHECK_ERR_R(queue_.enqueueNDRangeKernel(*sgm_horz_kernel_,
     cl::NullRange,
     cl::NDRange(DIVUP(M_,HORZ_BS_X), DIVUP(L_,HORZ_DBS)),
-    cl::NDRange(HORZ_BS_X,HORZ_DBS), glob_sync, &(preq_sync->back()));
+    cl::NDRange(HORZ_BS_X,HORZ_DBS), glob_sync, &(preq_sync->back())));
 
   // Final reduction pass
   red_horz_kernel_->setArg(0, *scratch_h_[reverse]);
@@ -94,9 +94,9 @@ void SGM::processHorz(int x, int reverse) {
 
   glob_sync->push_back(cl::Event());
 
-  queue_.enqueueNDRangeKernel(*red_horz_kernel_, cl::NullRange,
+  CL_CHECK_ERR_R(queue_.enqueueNDRangeKernel(*red_horz_kernel_, cl::NullRange,
     cl::NDRange(DIVUP(M_, HORZ_DBS)),
-    cl::NDRange(HORZ_DBS), preq_sync, &(glob_sync->back()));
+    cl::NDRange(HORZ_DBS), preq_sync, &(glob_sync->back())));
 }
 
 void SGM::processVert(int y, int reverse) {
@@ -118,10 +118,10 @@ void SGM::processVert(int y, int reverse) {
   sgm_vert_kernel_->setArg(15, *scratch_v_[reverse]);
   sgm_vert_kernel_->setArg(16, cl::Local(N_*VERT_DBS*sizeof(ushort)));
 
-  queue_.enqueueNDRangeKernel(*sgm_vert_kernel_,
+  CL_CHECK_ERR_R(queue_.enqueueNDRangeKernel(*sgm_vert_kernel_,
     cl::NullRange,
     cl::NDRange(DIVUP(N_,VERT_BS_X), DIVUP(L_,VERT_DBS)),
-    cl::NDRange(VERT_BS_X,VERT_DBS), glob_sync, &(preq_sync->back()));
+    cl::NDRange(VERT_BS_X,VERT_DBS), glob_sync, &(preq_sync->back())));
 
   // Final reduction pass
   red_vert_kernel_->setArg(0, *scratch_v_[reverse]);
@@ -131,21 +131,21 @@ void SGM::processVert(int y, int reverse) {
 
   glob_sync->push_back(cl::Event());
 
-  queue_.enqueueNDRangeKernel(*red_vert_kernel_, cl::NullRange,
+  CL_CHECK_ERR_R(queue_.enqueueNDRangeKernel(*red_vert_kernel_, cl::NullRange,
     cl::NDRange(DIVUP(N_, VERT_DBS)),
-    cl::NDRange(VERT_DBS), preq_sync, &(glob_sync->back()));
+    cl::NDRange(VERT_DBS), preq_sync, &(glob_sync->back())));
 }
 
 cl::Buffer *SGM::recoverFlow() {
-  queue_.finish();
+  CL_CHECK_ERR(queue_.finish());
 
   // This is slow -> Implement proper reduction!
-  queue_.enqueueNDRangeKernel(*recover_kernel_,
+  CL_CHECK_ERR(queue_.enqueueNDRangeKernel(*recover_kernel_,
     cl::NullRange,
     cl::NDRange(M_, N_),
-    cl::NullRange, NULL, NULL);
+    cl::NullRange, NULL, NULL));
 
-  queue_.finish();
+  CL_CHECK_ERR(queue_.finish());
 
   return flow_;
 }
@@ -193,7 +193,7 @@ void SGM::setupKernels() {
 }
 
 SGM::~SGM() {
-  queue_.finish();
+  CL_CHECK_ERR(queue_.finish());
 
   for (int i = 0; i < 4; ++i) {
     delete min_bufs_[i];

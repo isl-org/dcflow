@@ -167,7 +167,6 @@ __kernel void min_reduce_vert_fin(const __global ushort *in,
 __kernel void  match(__global float *feat1, __global float *feat2,
     __private int M, __private int N, __private int max_offset,
     __global uchar *unary1, __global uchar *unary2) {
-
   const int y = get_global_id(0);
   const int x = get_global_id(1);
 

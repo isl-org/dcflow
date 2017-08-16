@@ -1,5 +1,7 @@
 find_package(OpenCL REQUIRED)
 
+message(STATUS ${OpenCL_INCLUDE_DIRS})
+message(STATUS ${OpenCL_LIBRARY})
 
 set(CL_FILE dcflow)
 
@@ -17,7 +19,6 @@ set_target_properties(${CL_FILE} PROPERTIES OUTPUT_NAME "dcflow_mex")
 
 set_property(TARGET ${CL_FILE} PROPERTY CXX_STANDARD 11)
 set_property(TARGET ${CL_FILE} PROPERTY CXX_STANDARD_REQUIRED ON)
-
 
 # 32-bit or 64-bit mex
 if(WIN32)

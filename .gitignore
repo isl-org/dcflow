@@ -1,3 +1,6 @@
 .DS_Store
 matlab/external
 matlab/.DS_Store
+build
+matches*.txt
+*.mexa64
