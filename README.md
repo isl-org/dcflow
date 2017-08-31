@@ -23,6 +23,7 @@ If you use this code or the provided models in your research, please cite the fo
     - For AMD OpenCL set `export AMDAPPSDKROOD=<path to amd ocl sdk>`, e.g., `export AMDAPPSDKROOD=/usr/local/amd/opencl`
 - Set ``MATLAB_ROOT`` environment variable, e.g., `export MATLAB_ROOT=/usr/local/MATLAB/R2017a`
 - ``mkdir build``
+- ``cd build``
 - ``cmake ..``
 - ``make``
 - ``make install``
