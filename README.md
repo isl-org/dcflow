@@ -13,6 +13,7 @@ If you use this code or the provided models in your research, please cite the fo
 
 - CMake 3.2
 - Caffe + MatCaffe (needs to be in Matlab path, see ``matlab/demo.m``)
+	- We have seen issues with the latest version of caffe. We recommend to use this brunch (training and testing): https://github.com/Wangyida/caffe/tree/cnn_triplet
 - OpenCL
 
 ## Setup
